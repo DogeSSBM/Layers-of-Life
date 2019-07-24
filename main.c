@@ -135,28 +135,23 @@ uint layerGetNeighbours(Layer *layer, uint x, uint y)
 
 bool originalRules(bool cell, uint liveNeighbours)
 {
-	return cell ? liveNeighbours == 2 || liveNeighbours == 3 : liveNeighbours==3;
+	return cell? liveNeighbours==2 || liveNeighbours==3 : liveNeighbours==3;
 }
 
 bool highLifeRules(bool cell, uint liveNeighbours)
 {
-	bool ret = cell;
-	if(cell && (liveNeighbours < 2 || liveNeighbours > 3))
-		ret = false;
-	if(!cell && (liveNeighbours == 3 || liveNeighbours == 6))
-		ret = true;
-	return ret;
+	return cell? liveNeighbours==2 || liveNeighbours==3 :
+	liveNeighbours==3 || liveNeighbours==6));
 }
 
 bool seedsRules(bool cell, uint liveNeighbours)
 {
-	bool ret = !cell;
-	return ret && liveNeighbours == 2;
+	return !cell && liveNeighbours==2;
 }
 
 bool diamoebaRules(bool cell, uint liveNeighbours)
 {
-	return cell? liveNeighbours == 3 || liveNeighbours > 4: liveNeighbours >4;
+	return cell? liveNeighbours==3 || liveNeighbours>4 : liveNeighbours>4;
 }
 
 void layersApplyRules(Layer **layers, uint numLayers)
@@ -168,12 +163,7 @@ void layersApplyRules(Layer **layers, uint numLayers)
 				layers[i]->next[x][y] = (*layers[i]->rule)(
 					layers[i]->grid[x][y], liveNeighbours);
 			}
-			//memcpy(layers[i]->grid[x], layers[i]->next[x], sizeof(bool)*layers[i]->ylen);
 		}
-		//memcpy(layers[i]->grid, layers[i]->next, sizeof(bool*)*layers[i]->xlen);
-		// Grid temp = layers[i]->grid;
-		// layers[i]->grid = layers[i]->next;
-		// layers[i]->next = temp;
 		for(uint x = 0; x < layers[i]->xlen; x++){
 			for(uint y = 0; y < layers[i]->ylen; y++){
 				layers[i]->grid[x][y] = layers[i]->next[x][y];
@@ -247,14 +237,13 @@ int main(int argc, char const *argv[])
 					layersApplyRules(layerArr, numLayers);
 					mergeWait = 2;
 				}
+				// fallthrough
 			default:
-				//if(elapsedTime()>100){
-					layersApplyRules(layerArr, numLayers);
-					mergeWait -= mergeWait>0;
-					drawLayers(layerArr, numLayers);
-					draw();
-					resetTime();
-				//}
+				layersApplyRules(layerArr, numLayers);
+				mergeWait -= mergeWait>0;
+				drawLayers(layerArr, numLayers);
+				draw();
+				resetTime();
 				break;
 		}
 		delay(3);
