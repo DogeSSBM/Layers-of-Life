@@ -16,4 +16,6 @@ typedef int64_t i64;
 
 typedef SDL_Rect Rect;
 typedef SDL_Color Color;
+
 typedef bool **Grid;
+typedef bool(*Rule)(bool, uint);

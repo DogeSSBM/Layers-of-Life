@@ -1,134 +1,186 @@
 #include "Includes.h"
 
-uint gridx = 100, gridy = 60, scale = 16;
-uint winx, winy;
+#define GRIDX_DEF		100
+#define GRIDY_DEF		60
+#define SCALE_DEF		16
 
-Grid grids[3];
-Grid nextGrids[3];
+typedef struct{
+	uint x, y, xlen, ylen, scale;
+	Color liveColor;
+	Grid grid, next;
+	Rule rule;
+}Layer;
 
-Grid mallocGrid()
-{
-	Grid ret = malloc(sizeof(bool*)*gridx);
-	for(uint x = 0; x < gridx; x++) {
-		ret[x] = malloc(sizeof(bool)*gridy);
-		memset(ret[x], 0, sizeof(bool)*gridy);
-	}
-	return ret;
-}
-
-Grid freeGrid(Grid grid)
+void freeGrid(Grid grid, uint xlen)
 {
 	if(grid == NULL)
-		return grid;
-	for(uint x = 0; x < gridx; x++) {
-		if(grid[x] == NULL)
-			continue;
+		return;
+	for(uint x = 0; x < xlen; x++) {
 		free(grid[x]);
-		grid[x] = NULL;
 	}
 	free(grid);
-	grid == NULL;
-	return grid;
+	grid = NULL;
 }
 
-Grid randomizeGrid(Grid grid, uint chanceOfLife/*0-100*/)
+Grid mallocGrid(uint xlen, uint ylen)
 {
-	for(uint y = 0; y < gridy; y++){
-		for(uint x = 0; x < gridx; x++){
-			grid[x][y] = rand() % (100 + 1) <= chanceOfLife;
-		}
+	Grid grid = malloc(sizeof(bool*)*xlen);
+	for(uint x = 0; x < xlen; x++) {
+		grid[x] = malloc(sizeof(bool)*ylen);
 	}
 	return grid;
 }
 
-uint getTotalLive(Grid grid)
+void freeLayers(Layer** layerArr, uint numLayers)
 {
-	uint live = 0;
-	for(uint y = 0; y < gridy; y++) {
-		for(uint x = 0; x < gridx; x++) {
-			live += grid[x][y];
-		}
+	if(numLayers==0 || layerArr==NULL)
+		return;
+	for(uint i = 0; i < numLayers; i++){
+		freeGrid(layerArr[i]->grid, layerArr[i]->xlen);
+		free(layerArr[i]);
 	}
-	return live;
+	free(layerArr);
+	layerArr = NULL;
 }
 
-void drawGrid(Grid grid, Color liveColor)
+Layer** mallocLayers(int numLayers, uint xlen, uint ylen, uint scale, ...)
 {
-	for(uint y = 0; y < gridy; y++) {
-		for(uint x = 0; x < gridx; x++) {
-			if(grid[x][y]){
-				setColor(liveColor);
-				fillSquare(x*scale, y*scale, scale);
+	if(numLayers == 0)
+		return NULL;
+
+	Layer** layerArr = malloc(sizeof(Layer*)*numLayers);
+
+	va_list colorList;
+	va_start(colorList, scale);
+	for(uint i = 0; i < numLayers; i++){
+		layerArr[i] = malloc(sizeof(Layer));
+		layerArr[i]->xlen = xlen;
+		layerArr[i]->ylen = ylen;
+		layerArr[i]->scale = scale;
+		layerArr[i]->liveColor = va_arg(colorList, Color);
+		layerArr[i]->grid = mallocGrid(layerArr[i]->xlen, layerArr[i]->ylen);
+		layerArr[i]->next = mallocGrid(layerArr[i]->xlen, layerArr[i]->ylen);
+	}
+	va_end(colorList);
+	return layerArr;
+}
+
+void randomizeLayers(Layer **layerArr, uint numLayers, uint chanceOfLife)
+{
+	for(uint i = 0; i < numLayers; i++){
+		for(uint x = 0; x < layerArr[i]->xlen; x++){
+			for(uint y = 0; y < layerArr[i]->ylen; y++){
+				layerArr[i]->grid[x][y]=rand()%(100+1) <= chanceOfLife;
+			}
+		}
+	}
+}
+
+void drawLayer(Layer *layer)
+{
+	for(uint y = 0; y < layer->ylen; y++) {
+		for(uint x = 0; x < layer->xlen; x++) {
+			if(layer->grid[x][y]){
+				setColor(layer->liveColor);
+				fillSquare(x*layer->scale, y*layer->scale, layer->scale);
 			}
 			setColor(BLACK);
-			fillBorder(x*scale, y*scale, scale, scale, -1);
+			fillBorder(x*layer->scale, y*layer->scale, layer->scale, layer->scale, -1);
 		}
 	}
 }
 
-uint wrapX(int x)
+void drawLayers(Layer **layerArr, uint numLayers)
+{
+	clear();
+	for(uint i = 0; i < numLayers; i++){
+		drawLayer(layerArr[i]);
+	}
+}
+
+uint wrapX(int x, uint xmax)
 {
 	uint ret = (uint)x;
-	if(x >= gridx)
-		ret = x - gridx;
+	if(x >= xmax)
+		ret = x - xmax;
 	if (x < 0)
-		ret = gridx + x;
+		ret = xmax + x;
 	return ret;
 }
 
-uint wrapY(int y)
+uint wrapY(int y, uint ymax)
 {
 	uint ret = (uint)y;
-	if(y >= gridy)
-		ret = y - gridy;
+	if(y >= ymax)
+		ret = y - ymax;
 	if(y < 0)
-		ret = gridy + y;
+		ret = ymax + y;
 	return ret;
 }
 
-uint getLiveNeighbors(Grid grid, uint x, uint y)
+uint layerGetNeighbours(Layer *layer, uint x, uint y)
 {
-	uint liveNeighbors = 0;
-	uint posx, posy;
+	uint liveNeighbours = 0;
 	for(int xoffset = -1; xoffset <= 1; xoffset++) {
 		for(int yoffset = -1; yoffset <= 1; yoffset++) {
-			posx = wrapX(x + xoffset);
-			posy = wrapY(y + yoffset);
-			if(grid[posx][posy])
-				liveNeighbors++;
+			if(layer->grid
+			[wrapX(x + xoffset, layer->xlen)]
+			[wrapY(y + yoffset, layer->ylen)])
+				liveNeighbours++;
 		}
 	}
-	if(grid[x][y])
-		liveNeighbors--;
-	return liveNeighbors;
+	liveNeighbours -= layer->grid[x][y];
+	return liveNeighbours;
 }
 
-void mergeDown(Grid grid1, Grid grid2)
+bool originalRules(bool cell, uint liveNeighbours)
 {
-	for(uint y = 0; y < gridy; y++) {
-		for(uint x = 0; x < gridx; x++) {
-			// grid1[x][y] or equals grid2[x][y]
-			grid1[x][y] |= grid2[x][y];
+
+	bool ret = cell;
+	if(cell && (liveNeighbours < 2 || liveNeighbours > 3))
+		ret = false;
+	if(!cell && liveNeighbours == 3)
+		ret = true;
+	return ret;
+}
+
+void layersApplyRules(Layer **layers, uint numLayers)
+{
+	for(uint i = 0; i < numLayers; i++){
+		for(uint x = 0; x < layers[i]->xlen; x++){
+			for(uint y = 0; y < layers[i]->ylen; y++){
+				uint liveNeighbours = layerGetNeighbours(layers[i], x, y);
+				layers[i]->next[x][y] = (*layers[i]->rule)(
+					layers[i]->grid[x][y], liveNeighbours);
+			}
+			//memcpy(layers[i]->grid[x], layers[i]->next[x], sizeof(bool)*layers[i]->ylen);
+		}
+		//memcpy(layers[i]->grid, layers[i]->next, sizeof(bool*)*layers[i]->xlen);
+		// Grid temp = layers[i]->grid;
+		// layers[i]->grid = layers[i]->next;
+		// layers[i]->next = temp;
+		for(uint x = 0; x < layers[i]->xlen; x++){
+			for(uint y = 0; y < layers[i]->ylen; y++){
+				layers[i]->grid[x][y] = layers[i]->next[x][y];
+			}
 		}
 	}
 }
 
-void mergeAll(Grid *grids, uint numGrids)
+void layersMerge(Layer **layers, uint numLayers)
 {
-	static Grid temp = NULL;
-	if(temp == NULL)
-		temp = mallocGrid();
-	for(uint x = 0; x < gridx; x++) {
-		memcpy(temp[x], (grids[0])[x], sizeof(bool)*gridy);
-	}
-
-	for(uint i = 0; i < numGrids; i++){
-		mergeDown(grids[i], i<numGrids-1? grids[i+1]:temp);
+	for(uint i = 0; i < numLayers; i++){
+		for(uint x = 0; x < layers[i]->xlen; x++){
+			for(uint y = 0; y < layers[i]->ylen; y++){
+				layers[i]->grid[x][y] |= layers[(i+1)%numLayers]->grid[x][y];
+			}
+		}
 	}
 }
 
-int main(int argc, char *argv[])
+int main(int argc, char const *argv[])
 {
+	uint gridx = GRIDX_DEF, gridy = GRIDY_DEF, scale = SCALE_DEF;
 	switch (argc)
 	{
 	case 4:
@@ -143,70 +195,49 @@ int main(int argc, char *argv[])
 	default:
 		break;
 	}
-	winx = scale*gridx;
-	winy = scale*gridy;
-	gfx_init(winx, winy);
-	printf("grid: (%u, %u)\n", gridx, gridy);
-	const static Color colors[3] = {
-		{255, 0, 0, 85},
-		{0, 255, 0, 85},
-		{0, 0, 255, 85}
-	};
-	for(uint i = 0; i < 3; i++) {
-		grids[i] = mallocGrid();
-		nextGrids[i] = mallocGrid();
-		randomizeGrid(grids[i], 33);
-		//memcpy(nextGrids[i], grids[i], sizeof(bool) * gridx * gridy);
-		uint total = gridx * gridy;
-		uint alive = getTotalLive(grids[i]);
-		uint dead = total - alive;
-		float percentage = ((float)alive / (float)total)*100.0f;
-		printf("Grid %u-\n\talive: %u\n\tdead: %u\n\tpercentage: %.2f\n",
-			i, alive, dead, percentage);
-		printf("\tAlive r: %u\n", colors[i].r);
-		printf("\tAlive g: %u\n", colors[i].g);
-		printf("\tAlive b: %u\n", colors[i].b);
-		printf("\tAlive a: %u\n", colors[i].a);
-		drawGrid(grids[i], colors[i]);
-	}
 
-	/*
-	state	|	neighbors	|	outcome
-	------|-----------------|-------------
-	live	|	< 2		|	dead
-	live	|	> 3		|	dead
-	dead	|	3		|	live
-	*/
+	gfx_init(gridx*scale, gridy*scale);
+	uint numLayers = 3;
+	Layer **layerArr = mallocLayers(numLayers, GRIDX_DEF, GRIDY_DEF, SCALE_DEF,
+		rgbaToColor(255,0,0,85),
+		rgbaToColor(0,255,0,85),
+		rgbaToColor(0,0,255,85));
+	layerArr[0]->rule = originalRules;
+	layerArr[1]->rule = originalRules;
+	layerArr[2]->rule = originalRules;
 
-	while(1) {
-		for(uint i = 0; i < 3; i++) {
-			Grid grid = grids[i];
-			Grid next = nextGrids[i];
-			for(uint y = 0; y < gridy; y++) {
-				for(uint x = 0; x < gridx; x++) {
-					switch (events()) {
-						case E_MERGE:
-							mergeAll(grids, 3);
-							break;
-						default:
-							break;
-					}
-					uint liveNeighbors = getLiveNeighbors(grid, x, y);
-					next[x][y] = grid[x][y];
-					if(grid[x][y] && (liveNeighbors < 2 || liveNeighbors > 3))
-							next[x][y] = false;
-					if(!grid[x][y] && liveNeighbors == 3)
-						next[x][y] = true;
+	randomizeLayers(layerArr, numLayers, 100/numLayers);
+
+	drawLayers(layerArr, numLayers);
+	draw();
+	delay(100);
+	resetTime();
+	uint mergeWait = 0;
+	while(1){
+		switch (events()) {
+			case E_EXIT:
+				printf("Freeing layers.\n");
+				freeLayers(layerArr, numLayers);
+				printf("Exiting!\n");
+				exit(0);
+				break;
+			case E_MERGE:
+				if(mergeWait == 0){
+					layersMerge(layerArr, numLayers);
+					layersApplyRules(layerArr, numLayers);
+					mergeWait = 2;
 				}
-			}
-			Color c = rgbaToColor(255 * (i == 0), 255 * (i == 1), 255 * (i == 2), 85);
-			grids[i] = next;
-			nextGrids[i] = grid;
-			drawGrid(grid, c);
+			default:
+				//if(elapsedTime()>100){
+					layersApplyRules(layerArr, numLayers);
+					mergeWait -= mergeWait>0;
+					drawLayers(layerArr, numLayers);
+					draw();
+					resetTime();
+				//}
+				break;
 		}
-		draw();
-		clear();
+		delay(3);
 	}
-
 	return 0;
 }

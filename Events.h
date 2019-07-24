@@ -1,6 +1,6 @@
 #pragma once
 
-typedef enum{E_NONE, E_MERGE}Event;
+typedef enum{E_NONE, E_MERGE, E_EXIT}Event;
 Event events()
 {
 	static SDL_Event e;
@@ -13,8 +13,8 @@ Event events()
 		case SDL_KEYDOWN:
 			switch(e.key.keysym.sym){
 			case SDLK_ESCAPE:
-				printf("Quitting now!\n");
-				exit(0);
+				printf("Escape pressed, cleaning up before exit.\n");
+				return E_EXIT;
 				break;
 			case SDLK_SPACE:
 				printf("Merging all grids down\n");
