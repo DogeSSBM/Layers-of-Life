@@ -202,7 +202,7 @@ int main(int argc, char const *argv[])
 
 	gfx_init(gridx*scale, gridy*scale);
 	uint numLayers = 3;
-	Layer **layerArr = mallocLayers(numLayers, GRIDX_DEF, GRIDY_DEF, SCALE_DEF,
+	Layer **layerArr = mallocLayers(numLayers, gridx, gridy, scale,
 		rgbaToColor(255,0,0,85),
 		rgbaToColor(0,255,0,85),
 		rgbaToColor(0,0,255,85));
