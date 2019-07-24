@@ -135,23 +135,22 @@ uint layerGetNeighbours(Layer *layer, uint x, uint y)
 
 bool originalRules(bool cell, uint liveNeighbours)
 {
-	return cell? liveNeighbours==2 || liveNeighbours==3 : liveNeighbours==3;
+	return cell ? liveNeighbours == 2 || liveNeighbours == 3 : liveNeighbours == 3;
 }
 
 bool highLifeRules(bool cell, uint liveNeighbours)
 {
-	return cell? liveNeighbours==2 || liveNeighbours==3 :
-	liveNeighbours==3 || liveNeighbours==6));
+	return cell ? liveNeighbours==2||liveNeighbours==3 : liveNeighbours==3 || liveNeighbours==6;
 }
 
 bool seedsRules(bool cell, uint liveNeighbours)
 {
-	return !cell && liveNeighbours==2;
+	return !cell && liveNeighbours == 2;
 }
 
 bool diamoebaRules(bool cell, uint liveNeighbours)
 {
-	return cell? liveNeighbours==3 || liveNeighbours>4 : liveNeighbours>4;
+	return cell? liveNeighbours == 3 || liveNeighbours > 4: liveNeighbours >4;
 }
 
 void layersApplyRules(Layer **layers, uint numLayers)
@@ -177,12 +176,7 @@ void layersMerge(Layer **layers, uint numLayers)
 	for(uint i = 0; i < numLayers; i++){
 		for(uint x = 0; x < layers[i]->xlen; x++){
 			for(uint y = 0; y < layers[i]->ylen; y++){
-				layers[i]->next[x][y] |= layers[(i+1)%numLayers]->grid[x][y];
-			}
-		}
-		for(uint x = 0; x < layers[i]->xlen; x++){
-			for(uint y = 0; y < layers[i]->ylen; y++){
-				layers[i]->grid[x][y] = layers[i]->next[x][y];
+				layers[i]->grid[x][y] |= layers[(i+1)%numLayers]->grid[x][y];
 			}
 		}
 	}
@@ -237,7 +231,6 @@ int main(int argc, char const *argv[])
 					layersApplyRules(layerArr, numLayers);
 					mergeWait = 2;
 				}
-				// fallthrough
 			default:
 				layersApplyRules(layerArr, numLayers);
 				mergeWait -= mergeWait>0;
