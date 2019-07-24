@@ -135,24 +135,28 @@ uint layerGetNeighbours(Layer *layer, uint x, uint y)
 
 bool originalRules(bool cell, uint liveNeighbours)
 {
-
-	bool ret = cell;
-	if(cell && (liveNeighbours < 2 || liveNeighbours > 3))
-		ret = false;
-	if(!cell && liveNeighbours == 3)
-		ret = true;
-	return ret;
+	return cell ? liveNeighbours == 2 || liveNeighbours == 3 : liveNeighbours==3;
 }
 
 bool highLifeRules(bool cell, uint liveNeighbours)
 {
-
 	bool ret = cell;
 	if(cell && (liveNeighbours < 2 || liveNeighbours > 3))
 		ret = false;
 	if(!cell && (liveNeighbours == 3 || liveNeighbours == 6))
 		ret = true;
 	return ret;
+}
+
+bool seedsRules(bool cell, uint liveNeighbours)
+{
+	bool ret = !cell;
+	return ret && liveNeighbours == 2;
+}
+
+bool diamoebaRules(bool cell, uint liveNeighbours)
+{
+	return cell? liveNeighbours == 3 || liveNeighbours > 4: liveNeighbours >4;
 }
 
 void layersApplyRules(Layer **layers, uint numLayers)
@@ -214,7 +218,7 @@ int main(int argc, char const *argv[])
 		rgbaToColor(0,255,0,85),
 		rgbaToColor(0,0,255,85));
 	layerArr[0]->rule = originalRules;
-	layerArr[1]->rule = highLifeRules;
+	layerArr[1]->rule = originalRules;
 	layerArr[2]->rule = originalRules;
 
 	randomizeLayers(layerArr, numLayers, 100/numLayers);
