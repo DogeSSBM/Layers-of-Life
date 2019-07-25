@@ -228,7 +228,7 @@ void gfx_init(uint winXlen, uint winYlen)
 			exit(0);
 
 		}
-		SDL_SetRenderDrawBlendMode(gfx.renderer, SDL_BLENDMODE_BLEND);
+		SDL_SetRenderDrawBlendMode(gfx.renderer, SDL_BLENDMODE_ADD);
 		gfx.fontColor = WHITE;
 		setFontSize(16);
 		if(!gfx.font){

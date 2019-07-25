@@ -1,5 +1,7 @@
 #pragma once
 
+
+
 typedef enum{E_NONE, E_MERGE, E_EXIT}Event;
 Event events()
 {
