@@ -25,5 +25,5 @@ bool diamoebaRules(bool cell, uint liveNeighbours)
 
 bool cellularRules(bool cell, uint liveNeighbours)
 {
-	return liveNeighbours >= 3 && liveNeighbours <= 7;
+	return liveNeighbours >= 4 && liveNeighbours <= 7;
 }
