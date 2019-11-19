@@ -3,6 +3,8 @@
 #define GRIDX_DEF		100
 #define GRIDY_DEF		60
 #define SCALE_DEF		16
+#define NUMLAYERS_DEF	3
+#define RULEDEF		originalRules
 
 typedef struct{
 	uint x, y, xlen, ylen, scale;
