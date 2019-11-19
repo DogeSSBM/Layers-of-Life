@@ -19,7 +19,7 @@ void parseArgs(int argc, char const *argv[], uint* numLayers, uint* gridx, uint*
 				printf("gridx=%u\n", *gridx);
 			}
 		}
-		if(strncmp(argv[i], "gridy", 6)==0){
+		if(strncmp(argv[i], "gridy=", 6)==0){
 			if(sscanf(argv[i], "gridy=%u", gridy)!=1){
 				printf("the gridy arg is borked\n");
 				exit(1);
@@ -50,10 +50,9 @@ int main(int argc, char const *argv[])
 
 	Layer **layerArr = mallocLayers(numLayers, gridx, gridy, scale,
 		RED,BLUE,GREEN,WHITE);
-	layerArr[0]->rule = diamoebaRules;
-	layerArr[1]->rule = highLifeRules;
-	layerArr[2]->rule = highLifeRules;
-	layerArr[3]->rule = highLifeRules;
+	//layerArr[0]->rule = diamoebaRules;
+	for (int i = 0; i < numLayers; i++)
+		layerArr[i]->rule = cellularRules;
 
 	randomizeLayers(layerArr, numLayers, 100/numLayers);
 
@@ -74,7 +73,7 @@ int main(int argc, char const *argv[])
 					mergeWait = 2;
 				}
 			default:
-				if(elapsedTime()<100)
+				if(elapsedTime()<66)
 					break;
 				layersApplyRules(layerArr, numLayers);
 				mergeWait -= mergeWait>0;
