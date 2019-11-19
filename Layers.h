@@ -153,13 +153,38 @@ void layersApplyRules(Layer **layers, uint numLayers)
 	}
 }
 
-void layersMerge(Layer **layers, uint numLayers)
+// Inter-layer rules
+
+void layersMergeDown1(Layer **layers, uint numLayers)
 {
 	for(uint i = 0; i < numLayers; i++){
 		for(uint x = 0; x < layers[i]->xlen; x++){
 			for(uint y = 0; y < layers[i]->ylen; y++){
 				layers[i]->grid[x][y] |= layers[(i+1)%numLayers]->grid[x][y];
 			}
+		}
+	}
+}
+
+void layersCopyToBottom(Layer **layers, uint numLayers)
+{
+	if(numLayers == 0)
+		return;
+	for(uint i = 1; i < numLayers; i++){
+		for(uint x = 0; x < layers[i]->xlen; x++){
+			for(uint y = 0; y < layers[i]->ylen; y++){
+				layers[0]->grid[x][y] |= layers[i]->grid[x][y];
+			}
+		}
+	}
+}
+
+void layersXorToBottom(Layer **layers, uint numLayers)
+{
+	if(numLayers != 3)
+		return;
+	for(uint x = 0; x < layers[0]->xlen; x++){
+		for(uint y = 0; y < layers[0]->ylen; y++){				layers[0]->grid[x][y] |= layers[1]->grid[x][y] ^ layers[2]->grid[x][y];
 		}
 	}
 }

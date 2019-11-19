@@ -21,12 +21,10 @@ int main(int argc, char const *argv[])
 	gfx_init(gridx*scale, gridy*scale);
 	uint numLayers = 3;
 	Layer **layerArr = mallocLayers(numLayers, gridx, gridy, scale,
-		rgbaToColor(255,0,0,255),
-		rgbaToColor(0,255,0,255),
-		rgbaToColor(0,0,255,255));
-	layerArr[0]->rule = originalRules;
-	layerArr[1]->rule = originalRules;
-	layerArr[2]->rule = originalRules;
+		RED,BLUE,GREEN);
+	layerArr[0]->rule = diamoebaRules;
+	layerArr[1]->rule = highLifeRules;
+	layerArr[2]->rule = highLifeRules;
 
 	randomizeLayers(layerArr, numLayers, 100/numLayers);
 
@@ -43,7 +41,7 @@ int main(int argc, char const *argv[])
 				break;
 			case E_MERGE:
 				if(mergeWait == 0){
-					layersMerge(layerArr, numLayers);
+					layersXorToBottom(layerArr, numLayers);
 					mergeWait = 2;
 				}
 			default:
