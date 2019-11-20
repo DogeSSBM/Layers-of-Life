@@ -22,8 +22,14 @@ Event events()
 				printf("Merging all grids down\n");
 				return E_MERGE;
 				break;
-			case 'l': return E_SKIP;
-			case ';': return E_SKIP_MORE;
+			case 'l':
+				printf("Skipping\n");
+				return E_SKIP;
+				break;
+			case ';':
+				printf("Skipping more\n");
+				return E_SKIP_MORE;
+				break;
 			default:
 				break;
 			}
