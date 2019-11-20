@@ -108,11 +108,11 @@ int main(int argc, char const *argv[])
 				}
 				break;
 			case E_SKIP:
-				skipIter += 100;
+				skipIter += 50;
 				printf("skipIter: %d\n", skipIter);
 				break;
 			case E_SKIP_MORE:
-				skipIter += 1000;
+				skipIter += 500;
 				printf("skipIter: %d\n", skipIter);
 				break;
 			default:

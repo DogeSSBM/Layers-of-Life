@@ -80,18 +80,20 @@ void randomizeLayers(Layer **layerArr, uint numLayers, uint chanceOfLife)
 
 void drawLayer(Layer *layer)
 {
+			SDL_SetRenderDrawBlendMode(gfx.renderer, SDL_BLENDMODE_ADD);
 	for(uint y = 0; y < layer->ylen; y++) {
 		for(uint x = 0; x < layer->xlen; x++) {
 			if(layer->grid[x][y]){
 				setColor(layer->liveColor);
 				fillSquare(x*layer->scale, y*layer->scale, layer->scale);
 			}
-			SDL_SetRenderDrawBlendMode(gfx.renderer, SDL_BLENDMODE_NONE);
-			setColor(BLACK);
-			fillBorder(x*layer->scale, y*layer->scale, layer->scale, layer->scale, -1);
-			SDL_SetRenderDrawBlendMode(gfx.renderer, SDL_BLENDMODE_ADD);
+			// SDL_SetRenderDrawBlendMode(gfx.renderer, SDL_BLENDMODE_NONE);
+			// setColor(BLACK);
+			// fillBorder(x*layer->scale, y*layer->scale, layer->scale, layer->scale, -1);
+			// SDL_SetRenderDrawBlendMode(gfx.renderer, SDL_BLENDMODE_ADD);
 		}
 	}
+			SDL_SetRenderDrawBlendMode(gfx.renderer, SDL_BLENDMODE_NONE);
 }
 
 void drawLayers(Layer **layerArr, uint numLayers)
