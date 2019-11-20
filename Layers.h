@@ -76,8 +76,9 @@ void randomizeLayers(Layer **layerArr, uint numLayers, uint chanceOfLife)
 				float py = y / (float) layerArr[i]->ylen;
 				float rad = 0.8;
 				// float modulation = exp( -((px - 0.5) * (px - 0.5) + (py - 0.5) * (py - 0.5)) / (0.25 * rad * rad) );
-				float modulation = pow((1.0 + sin((x + y) / 30.0)) *  (1.0 + sin((x - y) / 30.0)) / 4.0, 2)
+				float modulation = (1.0 + sin((x + y) / 40.0)) *  (1.0 + sin((x - y) / 40.0)) / 4.0
 				 *  exp( -((px - 0.5) * (px - 0.5) + (py - 0.5) * (py - 0.5)) / (0.25 * rad * rad) );
+				 // float modulation = 1;
 				layerArr[i]->grid[x][y]=rand()%(100+1) <= chanceOfLife * modulation;
 			}
 		}

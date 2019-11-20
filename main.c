@@ -76,7 +76,7 @@ int main(int argc, char const *argv[])
 		gridy = GRIDY_DEF,
 		scale = SCALE_DEF;
 	Rule preferredRules = RULEDEF;
-	float randomThresh = 0.5;
+	float randomThresh = 0.33;
 	int skipIter = 0;
 	parseArgs(argc, argv, &numLayers,&gridx,&gridy,&scale,&preferredRules,&randomThresh);
 
