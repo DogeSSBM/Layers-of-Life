@@ -76,7 +76,7 @@ int main(int argc, char const *argv[])
 		gridy = GRIDY_DEF,
 		scale = SCALE_DEF;
 	Rule preferredRules = RULEDEF;
-	float randomThresh = 0.25;
+	float randomThresh = 0.5;
 	int skipIter = 0;
 	parseArgs(argc, argv, &numLayers,&gridx,&gridy,&scale,&preferredRules,&randomThresh);
 
@@ -116,7 +116,7 @@ int main(int argc, char const *argv[])
 				printf("skipIter: %d\n", skipIter);
 				break;
 			default:
-				if(elapsedTime()<66)
+				if(elapsedTime()<50)
 					break;
 				layersApplyRules(layerArr, numLayers);
 				for (; skipIter > 0; skipIter--) layersApplyRules(layerArr, numLayers);

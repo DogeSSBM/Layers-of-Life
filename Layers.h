@@ -1,8 +1,8 @@
 #pragma once
 
-#define GRIDX_DEF		100
-#define GRIDY_DEF		60
-#define SCALE_DEF		16
+#define GRIDX_DEF		480
+#define GRIDY_DEF		320
+#define SCALE_DEF		3
 #define NUMLAYERS_DEF	3
 #define RULEDEF		originalRules
 
@@ -72,7 +72,13 @@ void randomizeLayers(Layer **layerArr, uint numLayers, uint chanceOfLife)
 	for(uint i = 0; i < numLayers; i++){
 		for(uint x = 0; x < layerArr[i]->xlen; x++){
 			for(uint y = 0; y < layerArr[i]->ylen; y++){
-				layerArr[i]->grid[x][y]=rand()%(100+1) <= chanceOfLife;
+				float px = x / (float) layerArr[i]->xlen;
+				float py = y / (float) layerArr[i]->ylen;
+				float rad = 0.8;
+				// float modulation = exp( -((px - 0.5) * (px - 0.5) + (py - 0.5) * (py - 0.5)) / (0.25 * rad * rad) );
+				float modulation = pow((1.0 + sin((x + y) / 30.0)) *  (1.0 + sin((x - y) / 30.0)) / 4.0, 2)
+				 *  exp( -((px - 0.5) * (px - 0.5) + (py - 0.5) * (py - 0.5)) / (0.25 * rad * rad) );
+				layerArr[i]->grid[x][y]=rand()%(100+1) <= chanceOfLife * modulation;
 			}
 		}
 	}
