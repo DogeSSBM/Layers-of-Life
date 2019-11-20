@@ -1,8 +1,8 @@
 #pragma once
 
-#define GRIDX_DEF		100
-#define GRIDY_DEF		60
-#define SCALE_DEF		16
+#define GRIDX_DEF		480
+#define GRIDY_DEF		320
+#define SCALE_DEF		3
 #define NUMLAYERS_DEF	3
 #define RULEDEF		originalRules
 
@@ -72,7 +72,14 @@ void randomizeLayers(Layer **layerArr, uint numLayers, uint chanceOfLife)
 	for(uint i = 0; i < numLayers; i++){
 		for(uint x = 0; x < layerArr[i]->xlen; x++){
 			for(uint y = 0; y < layerArr[i]->ylen; y++){
-				layerArr[i]->grid[x][y]=rand()%(100+1) <= chanceOfLife;
+				float px = x / (float) layerArr[i]->xlen;
+				float py = y / (float) layerArr[i]->ylen;
+				float rad = 1.0;
+				// float modulation = exp( -((px - 0.5) * (px - 0.5) + (py - 0.5) * (py - 0.5)) / (0.25 * rad * rad) );
+				float modulation = (1.0 + sin((x + y) / 25.0)) *  (1.0 + sin((x - y) / 25.0)) / 4.0
+				 *  exp( -((px - 0.5) * (px - 0.5) + (py - 0.5) * (py - 0.5)) / (0.25 * rad * rad) );
+				 // float modulation = 1;
+				layerArr[i]->grid[x][y]=rand()%(100+1) <= chanceOfLife * modulation;
 			}
 		}
 	}
@@ -80,18 +87,20 @@ void randomizeLayers(Layer **layerArr, uint numLayers, uint chanceOfLife)
 
 void drawLayer(Layer *layer)
 {
+			SDL_SetRenderDrawBlendMode(gfx.renderer, SDL_BLENDMODE_ADD);
 	for(uint y = 0; y < layer->ylen; y++) {
 		for(uint x = 0; x < layer->xlen; x++) {
 			if(layer->grid[x][y]){
 				setColor(layer->liveColor);
 				fillSquare(x*layer->scale, y*layer->scale, layer->scale);
 			}
-			SDL_SetRenderDrawBlendMode(gfx.renderer, SDL_BLENDMODE_NONE);
-			setColor(BLACK);
-			fillBorder(x*layer->scale, y*layer->scale, layer->scale, layer->scale, -1);
-			SDL_SetRenderDrawBlendMode(gfx.renderer, SDL_BLENDMODE_ADD);
+			// SDL_SetRenderDrawBlendMode(gfx.renderer, SDL_BLENDMODE_NONE);
+			// setColor(BLACK);
+			// fillBorder(x*layer->scale, y*layer->scale, layer->scale, layer->scale, -1);
+			// SDL_SetRenderDrawBlendMode(gfx.renderer, SDL_BLENDMODE_ADD);
 		}
 	}
+			SDL_SetRenderDrawBlendMode(gfx.renderer, SDL_BLENDMODE_NONE);
 }
 
 void drawLayers(Layer **layerArr, uint numLayers)

@@ -2,7 +2,7 @@
 
 
 
-typedef enum{E_NONE, E_MERGE, E_EXIT}Event;
+typedef enum{E_NONE, E_MERGE, E_SKIP, E_SKIP_MORE, E_EXIT}Event;
 Event events()
 {
 	static SDL_Event e;
@@ -21,6 +21,14 @@ Event events()
 			case SDLK_SPACE:
 				printf("Merging all grids down\n");
 				return E_MERGE;
+				break;
+			case 'l':
+				printf("Skipping\n");
+				return E_SKIP;
+				break;
+			case ';':
+				printf("Skipping more\n");
+				return E_SKIP_MORE;
 				break;
 			default:
 				break;

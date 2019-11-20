@@ -1,6 +1,7 @@
 #include "Includes.h"
 
-void parseArgs(int argc, char const *argv[], uint* numLayers, uint* gridx, uint* gridy, uint* scale)
+void parseArgs(int argc, char const *argv[], uint* numLayers, uint* gridx,
+	uint* gridy, uint* scale, Rule* preferredRules, float* randomThresh)
 {
 	for(uint i = 1; i < argc; i++){
 		if(strncmp(argv[i], "numLayers=", 10)==0){
@@ -19,7 +20,7 @@ void parseArgs(int argc, char const *argv[], uint* numLayers, uint* gridx, uint*
 				printf("gridx=%u\n", *gridx);
 			}
 		}
-		if(strncmp(argv[i], "gridy", 6)==0){
+		if(strncmp(argv[i], "gridy=", 6)==0){
 			if(sscanf(argv[i], "gridy=%u", gridy)!=1){
 				printf("the gridy arg is borked\n");
 				exit(1);
@@ -35,6 +36,36 @@ void parseArgs(int argc, char const *argv[], uint* numLayers, uint* gridx, uint*
 				printf("scale=%u\n", *scale);
 			}
 		}
+		if(strncmp(argv[i], "init=", 5)==0){
+			if(sscanf(argv[i], "init=%f", randomThresh)!=1){
+				printf("the init arg is borked\n");
+				exit(1);
+			}else{
+				printf("init=%u\n", *scale);
+			}
+		}
+		if(strncmp(argv[i], "rules=", 6)==0){
+			char ruleset[32];
+			if(sscanf(argv[i], "rules=%s", ruleset)!=1){
+				printf("the rules arg is borked\n");
+				exit(1);
+			}else{
+				if (!strcmp(ruleset, "original")) {
+					*preferredRules = originalRules;
+				} else if (!strcmp(ruleset, "highLife")) {
+					*preferredRules = highLifeRules;
+				} else if (!strcmp(ruleset, "seeds")) {
+					*preferredRules = seedsRules;
+				} else if (!strcmp(ruleset, "diamoeba")) {
+					*preferredRules = diamoebaRules;
+				} else if (!strcmp(ruleset, "cellular")) {
+					*preferredRules = cellularRules;
+				} else {
+					printf("unknown ruleset: %s\n", ruleset); exit(1);
+				}
+				printf("rules=%s\n", ruleset);
+			}
+		}
 	}
 }
 
@@ -44,18 +75,20 @@ int main(int argc, char const *argv[])
 		gridx = GRIDX_DEF,
 		gridy = GRIDY_DEF,
 		scale = SCALE_DEF;
-	parseArgs(argc, argv, &numLayers,&gridx,&gridy,&scale);
+	Rule preferredRules = RULEDEF;
+	float randomThresh = 0.25;
+	int skipIter = 0;
+	parseArgs(argc, argv, &numLayers,&gridx,&gridy,&scale,&preferredRules,&randomThresh);
 
 	gfx_init(gridx*scale, gridy*scale);
 
 	Layer **layerArr = mallocLayers(numLayers, gridx, gridy, scale,
 		RED,BLUE,GREEN,WHITE);
-	layerArr[0]->rule = diamoebaRules;
-	layerArr[1]->rule = highLifeRules;
-	layerArr[2]->rule = highLifeRules;
-	layerArr[3]->rule = highLifeRules;
+	//layerArr[0]->rule = diamoebaRules;
+	for (int i = 0; i < numLayers; i++)
+		layerArr[i]->rule = preferredRules;
 
-	randomizeLayers(layerArr, numLayers, 100/numLayers);
+	randomizeLayers(layerArr, numLayers, (int)(100 * randomThresh));
 
 	drawLayers(layerArr, numLayers);
 	resetTime();
@@ -73,10 +106,20 @@ int main(int argc, char const *argv[])
 					layersMergeDown1(layerArr, numLayers);
 					mergeWait = 2;
 				}
+				break;
+			case E_SKIP:
+				skipIter += 50;
+				printf("skipIter: %d\n", skipIter);
+				break;
+			case E_SKIP_MORE:
+				skipIter += 500;
+				printf("skipIter: %d\n", skipIter);
+				break;
 			default:
-				if(elapsedTime()<100)
+				if(elapsedTime()<50)
 					break;
 				layersApplyRules(layerArr, numLayers);
+				for (; skipIter > 0; skipIter--) layersApplyRules(layerArr, numLayers);
 				mergeWait -= mergeWait>0;
 				drawLayers(layerArr, numLayers);
 				draw();
