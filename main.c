@@ -77,6 +77,7 @@ int main(int argc, char const *argv[])
 		scale = SCALE_DEF;
 	Rule preferredRules = RULEDEF;
 	float randomThresh = 0.33;
+	int skipIter = 0;
 	parseArgs(argc, argv, &numLayers,&gridx,&gridy,&scale,&preferredRules,&randomThresh);
 
 	gfx_init(gridx*scale, gridy*scale);
@@ -105,10 +106,20 @@ int main(int argc, char const *argv[])
 					layersMergeDown1(layerArr, numLayers);
 					mergeWait = 2;
 				}
+				break;
+			case E_SKIP:
+				skipIter += 100;
+				printf("skipIter: %d\n", skipIter);
+				break;
+			case E_SKIP_MORE:
+				skipIter += 1000;
+				printf("skipIter: %d\n", skipIter);
+				break;
 			default:
 				if(elapsedTime()<66)
 					break;
 				layersApplyRules(layerArr, numLayers);
+				for (; skipIter > 0; skipIter--) layersApplyRules(layerArr, numLayers);
 				mergeWait -= mergeWait>0;
 				drawLayers(layerArr, numLayers);
 				draw();
