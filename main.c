@@ -53,7 +53,6 @@ int main(int argc, char const *argv[])
 	layerArr[0]->rule = diamoebaRules;
 	layerArr[1]->rule = highLifeRules;
 	layerArr[2]->rule = highLifeRules;
-	layerArr[3]->rule = highLifeRules;
 
 	randomizeLayers(layerArr, numLayers, 100/numLayers);
 
